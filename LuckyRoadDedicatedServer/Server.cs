@@ -90,12 +90,13 @@ namespace LuckyRoadDedicatedServer
             clients[cInfo.RemoteUniqueIdentifier].connectionInfo = cInfo;
         }
 
-        static void handleEvent(Event e, int clientID)
+        static void handleEvent(Event e, long clientID)
         {
             switch (e.type)
             {
                 case Event.EventType.Dice:
-                    Console.WriteLine("")
+                    DiceEvent dEvent = (DiceEvent)e;
+                    Console.WriteLine(clients[clientID].userName + " rolled a " + dEvent.value)
                     break;
                 default:
                     Console.WriteLine("Unhandled Event Type:" + e.ToString());
