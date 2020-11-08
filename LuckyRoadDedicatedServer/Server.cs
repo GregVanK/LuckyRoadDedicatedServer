@@ -8,9 +8,10 @@ namespace LuckyRoadDedicatedServer
     class Server
     {
         static NetServer server;
-        public static Dictionary<int, Client> clients;
+        public static Dictionary<long, Client> clients;
         public static int maxPlayers;
         private static int currentPlayers = 0;
+        private static EventManager eventManager = new EventManager();
         static void Main(string[] args)
         {
             Console.Title = "Lucky Road Dedicated Server";
@@ -19,7 +20,7 @@ namespace LuckyRoadDedicatedServer
             config.MaximumConnections = 100;
             config.Port = 32450;
 
-            clients = new Dictionary<int, Client>();
+            clients = new Dictionary<long, Client>();
             maxPlayers = 4;
             
             //config.EnableUPnP = true;
@@ -45,8 +46,8 @@ namespace LuckyRoadDedicatedServer
                 {
                     case NetIncomingMessageType.Data:
                         // handle custom messages
-                        var data = incommingMessage.ReadString();
-                        Console.WriteLine(data);
+                        Event e = eventManager.deSerializeEvent(incommingMessage.Data);
+                        handleEvent(e,incommingMessage.SenderConnection.RemoteUniqueIdentifier)
                         break;
 
                     case NetIncomingMessageType.StatusChanged:
@@ -86,7 +87,21 @@ namespace LuckyRoadDedicatedServer
         }
         static void addPlayer(NetConnection cInfo)
         {
-            clients[currentPlayers].connectionInfo = cInfo;
+            clients[cInfo.RemoteUniqueIdentifier].connectionInfo = cInfo;
+        }
+
+        static void handleEvent(Event e, int clientID)
+        {
+            switch (e.type)
+            {
+                case Event.EventType.Dice:
+                    Console.WriteLine("")
+                    break;
+                default:
+                    Console.WriteLine("Unhandled Event Type:" + e.ToString());
+                    break;
+
+            }
         }
     }
 }
