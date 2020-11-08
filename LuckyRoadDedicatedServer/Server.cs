@@ -1,11 +1,16 @@
 ﻿using System;
 using Lidgren.Network;
 using System.Threading;
+using System.Collections.Generic;
+
 namespace LuckyRoadDedicatedServer
 {
     class Server
     {
         static NetServer server;
+        public static Dictionary<int, Client> clients;
+        public static int maxPlayers;
+        private static int currentPlayers = 0;
         static void Main(string[] args)
         {
             Console.Title = "Lucky Road Dedicated Server";
@@ -13,6 +18,10 @@ namespace LuckyRoadDedicatedServer
             NetPeerConfiguration config = new NetPeerConfiguration("LuckyRoad");
             config.MaximumConnections = 100;
             config.Port = 32450;
+
+            clients = new Dictionary<int, Client>();
+            maxPlayers = 4;
+            
             //config.EnableUPnP = true;
             //i dont fully know what this does, but if we have dropped packets, probably try disabling this (its suppose to reduce the amount of memory usage)
             //config.AutoFlushSendQueue = true;
@@ -20,6 +29,7 @@ namespace LuckyRoadDedicatedServer
 
             server = new NetServer(config);
             server.Start();
+            initializeServerData();
             while (true)
             {
                 serverLoop();
@@ -44,7 +54,9 @@ namespace LuckyRoadDedicatedServer
                         switch (incommingMessage.SenderConnection.Status)
                         {
                             case NetConnectionStatus.Connected:
-                                Console.WriteLine("User has connected");
+                                currentPlayers++;
+                                addPlayer(server.Connections[currentPlayers - 1]);
+                                Console.WriteLine(clients[currentPlayers].userName + " has connected");
                                 break;
                             case NetConnectionStatus.Disconnected:
                                 Console.WriteLine("User has disconnected");
@@ -64,6 +76,17 @@ namespace LuckyRoadDedicatedServer
                 server.Recycle(incommingMessage);
             }
             Thread.Sleep(ServerSettings.TICK_RATE);
+        }
+        static void initializeServerData()
+        {
+            for (int i = 1; i <= maxPlayers; i++)
+            {
+                clients.Add(i ,new Client(i));
+            }
+        }
+        static void addPlayer(NetConnection cInfo)
+        {
+            clients[currentPlayers].connectionInfo = cInfo;
         }
     }
 }
