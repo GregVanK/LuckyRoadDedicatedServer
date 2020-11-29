@@ -3,7 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 [Serializable]
-public class Event {
+public class Event
+{
     //TODO:BoardMoveEvent, UpdateMoneyEvent, Ect?
     public enum EventType { Dice, Movement, }
     public EventType type;
@@ -18,7 +19,7 @@ public class Event {
                 Console.WriteLine("Failed to convert event type");
                 return null;
         }
-        
+
     }
 }
 public class DiceEvent : Event
@@ -26,7 +27,7 @@ public class DiceEvent : Event
     public int value;
 
 }
-public class MoveEvent: Event
+public class MoveEvent : Event
 {
     //TODO: Create Move Event
 }

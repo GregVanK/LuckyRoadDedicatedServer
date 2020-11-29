@@ -22,7 +22,7 @@ public class EventManager{
 
             ms.Write(b, 0, b.Length);
             ms.Seek(0, SeekOrigin.Begin);
-            Event eventData = (Event)bf.Deserialize(ms);
+            DiceEvent eventData = (DiceEvent)bf.Deserialize(ms);
             return eventData;
         }
     }
