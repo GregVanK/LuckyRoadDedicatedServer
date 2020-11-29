@@ -28,9 +28,9 @@ namespace LuckyRoadDedicatedServer
             }
         }
         public NetPeer peer;
-        public Client(int i)
+        public Client(String u)
         {
-            id = i;
+            userName = u;
         }
         
     }

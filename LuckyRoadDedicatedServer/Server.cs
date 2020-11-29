@@ -30,7 +30,6 @@ namespace LuckyRoadDedicatedServer
 
             server = new NetServer(config);
             server.Start();
-            initializeServerData();
             while (true)
             {
                 serverLoop();
@@ -46,8 +45,8 @@ namespace LuckyRoadDedicatedServer
                 {
                     case NetIncomingMessageType.Data:
                         // handle custom messages
-                        Event e = eventManager.deSerializeEvent(incommingMessage.Data);
-                        handleEvent(e,incommingMessage.SenderConnection.RemoteUniqueIdentifier)
+                        
+                        handleEvent(incommingMessage);
                         break;
 
                     case NetIncomingMessageType.StatusChanged:
@@ -57,7 +56,7 @@ namespace LuckyRoadDedicatedServer
                             case NetConnectionStatus.Connected:
                                 currentPlayers++;
                                 addPlayer(server.Connections[currentPlayers - 1]);
-                                Console.WriteLine(clients[currentPlayers].userName + " has connected");
+                                Console.WriteLine(clients[server.Connections[currentPlayers - 1].RemoteUniqueIdentifier].userName + " has connected");
                                 break;
                             case NetConnectionStatus.Disconnected:
                                 Console.WriteLine("User has disconnected");
@@ -78,25 +77,31 @@ namespace LuckyRoadDedicatedServer
             }
             Thread.Sleep(ServerSettings.TICK_RATE);
         }
-        static void initializeServerData()
-        {
-            for (int i = 1; i <= maxPlayers; i++)
-            {
-                clients.Add(i ,new Client(i));
-            }
-        }
         static void addPlayer(NetConnection cInfo)
         {
-            clients[cInfo.RemoteUniqueIdentifier].connectionInfo = cInfo;
+            clients.Add(cInfo.RemoteUniqueIdentifier, new Client(cInfo.RemoteHailMessage.ReadString()));
         }
 
-        static void handleEvent(Event e, long clientID)
+        static void handleEvent(NetIncomingMessage eventMessage)
         {
+            Event e = eventManager.deSerializeEvent(eventMessage.Data);
+            long sender = eventMessage.SenderConnection.RemoteUniqueIdentifier;
+
             switch (e.type)
             {
+                //Username system broke...
                 case Event.EventType.Dice:
                     DiceEvent dEvent = (DiceEvent)e;
-                    Console.WriteLine(clients[clientID].userName + " rolled a " + dEvent.value)
+                   Console.WriteLine("SOMEONE rolled a " + dEvent.value);
+                    List<NetConnection> all = server.Connections;
+                    all.Remove(eventMessage.SenderConnection);
+
+                    if(all.Count > 0)
+                    {
+                        NetOutgoingMessage relayMsg = server.CreateMessage();
+                        relayMsg.Write(eventManager.serializeEvent(dEvent));
+                        server.SendMessage(relayMsg, all, NetDeliveryMethod.ReliableOrdered, 0);
+                    }
                     break;
                 default:
                     Console.WriteLine("Unhandled Event Type:" + e.ToString());
