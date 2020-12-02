@@ -22,11 +22,13 @@ public class Event
 
     }
 }
+[Serializable]
 public class DiceEvent : Event
 {
     public int value;
 
 }
+[Serializable]
 public class MoveEvent : Event
 {
     //TODO: Create Move Event
