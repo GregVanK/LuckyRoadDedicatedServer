@@ -83,6 +83,11 @@ namespace LuckyRoadDedicatedServer
                                     packet.NetIncomingMessageToPacket(message);
                                     SendPositionPacket(all, (PositionPacket)packet);
                                     break;
+                                case (byte)PacketTypes.DicePacket:
+                                    packet = new DicePacket();
+                                    packet.NetIncomingMessageToPacket(message);
+                                    SendDicePacket(all, (DicePacket)packet);
+                                    break;
                                 case (byte)PacketTypes.PlayerDisconnectsPacket:
                                     packet = new PlayerDisconnectsPacket();
                                     packet.NetIncomingMessageToPacket(message);
@@ -149,7 +154,7 @@ namespace LuckyRoadDedicatedServer
 
         public void SendSpawnPacketToAll(List<NetConnection> all, string player, float X, float Z)
         {
-            Logger.Info("Sending user spawn info for player: " + player);
+            Logger.Info("[PID " + player + "] spawning at to " + X + "," + Z);
 
             playerPositions[player] = new PlayerPosition() { X = X, Z = Z };
 
@@ -160,10 +165,19 @@ namespace LuckyRoadDedicatedServer
 
         public void SendPositionPacket(List<NetConnection> all, PositionPacket packet)
         {
-            Logger.Info("Sending position for " + packet.player);
+            Logger.Info("Spawning [PID " + packet.player + "] at " + packet.X + "," + packet.Z);
 
             playerPositions[packet.player] = new PlayerPosition { X = packet.X, Z = packet.Z };
             
+            NetOutgoingMessage message = server.CreateMessage();
+            packet.PacketToNetOutGoingMessage(message);
+            server.SendMessage(message, all, NetDeliveryMethod.ReliableOrdered, 0);
+        }
+        //Dice packet sender
+        public void SendDicePacket(List<NetConnection> all, DicePacket packet)
+        {
+            Logger.Info("[PID " + packet.player + "] rolled a " + packet.Dice);
+
             NetOutgoingMessage message = server.CreateMessage();
             packet.PacketToNetOutGoingMessage(message);
             server.SendMessage(message, all, NetDeliveryMethod.ReliableOrdered, 0);

@@ -10,6 +10,7 @@ namespace LuckyRoadDedicatedServer
         LocalPlayerPacket,
         PlayerDisconnectsPacket,
         PositionPacket,
+        DicePacket,
         SpawnPacket
     }
 
@@ -78,7 +79,24 @@ namespace LuckyRoadDedicatedServer
             player = message.ReadString();
         }
     }
+    public class DicePacket : Packet
+    {
+        public int Dice { get; set; }
+        public string player { get; set; }
 
+        public override void PacketToNetOutGoingMessage(NetOutgoingMessage message)
+        {
+            message.Write((byte)PacketTypes.DicePacket);
+            message.Write(Dice);
+            message.Write(player);
+        }
+
+        public override void NetIncomingMessageToPacket(NetIncomingMessage message)
+        {
+            Dice = message.ReadInt32();
+            player = message.ReadString();
+        }
+    }
     public class SpawnPacket : Packet
     {
         public float X { get; set; }
