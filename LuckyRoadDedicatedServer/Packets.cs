@@ -11,6 +11,7 @@ namespace LuckyRoadDedicatedServer
         PlayerDisconnectsPacket,
         PositionPacket,
         DicePacket,
+        TurnStatePacket,
         SpawnPacket
     }
 
@@ -97,6 +98,32 @@ namespace LuckyRoadDedicatedServer
             player = message.ReadString();
         }
     }
+
+    //Pass the turn state to the server to help manidate the flow of the game
+    public class TurnStatePacket : Packet
+    {
+        public enum GameState
+        {
+            TurnStart,
+            DiceRoll,
+            TurnEnd
+        }
+        public GameState state { get; set; }
+        public string player { get; set; }
+        public override void PacketToNetOutGoingMessage(NetOutgoingMessage message)
+        {
+            message.Write((byte)PacketTypes.DicePacket);
+            message.Write((byte)state);
+            message.Write(player);
+        }
+
+        public override void NetIncomingMessageToPacket(NetIncomingMessage message)
+        {
+            state = (GameState)message.ReadByte();
+            player = message.ReadString();
+        }
+    }
+
     public class SpawnPacket : Packet
     {
         public float X { get; set; }
